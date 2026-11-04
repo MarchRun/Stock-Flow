@@ -125,7 +125,6 @@ func CancelOrder(pool *pgxpool.Pool) http.HandlerFunc {
 			return
 		}
 
-		// Use the same SKU lock order as order creation.
 		rows, err := tx.Query(ctx, `
 			SELECT id, order_id, sku, qty, unit_price
 			FROM sales_order_items
