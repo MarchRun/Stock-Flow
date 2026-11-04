@@ -61,8 +61,8 @@ func main() {
 	mux.HandleFunc("POST /api/orders/{id}/cancel", api.CancelOrder(pool))
 
 	server := &http.Server{
-		Addr:              ":8080",
-		Handler:           mux,
+		Addr: ":8080",
+		Handler: mux,
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 

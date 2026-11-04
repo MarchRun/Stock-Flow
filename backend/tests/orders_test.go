@@ -1,4 +1,4 @@
-package api
+package tests
 
 import (
 	"context"
@@ -8,59 +8,61 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"stockflow/backend/internal/api"
 )
 
 func TestCreateOrder(t *testing.T) {
 	tests := []struct {
-		name      string
-		body      string
-		status    int
-		stockA    int
-		stockB    int
-		orders    int
-		items     int
+		name string
+		body string
+		status int
+		stockA int
+		stockB int
+		orders int
+		items int
 		movements int
 	}{
 		{
-			name:   "success",
-			body:   `{"customer":"Test customer","items":[{"sku":"TEST-A","qty":2},{"sku":"TEST-B","qty":1}]}`,
+			name: "success",
+			body: `{"customer":"Test customer","items":[{"sku":"TEST-A","qty":2},{"sku":"TEST-B","qty":1}]}`,
 			status: http.StatusCreated,
 			stockA: 8, stockB: 0,
 			orders: 1, items: 2, movements: 2,
 		},
 		{
-			name:   "insufficient stock writes nothing",
-			body:   `{"customer":"Test customer","items":[{"sku":"TEST-A","qty":2},{"sku":"TEST-B","qty":2}]}`,
+			name: "insufficient stock writes nothing",
+			body: `{"customer":"Test customer","items":[{"sku":"TEST-A","qty":2},{"sku":"TEST-B","qty":2}]}`,
 			status: http.StatusConflict,
 			stockA: 10, stockB: 1,
 		},
 		{
-			name:   "unknown SKU",
-			body:   `{"customer":"Test customer","items":[{"sku":"TEST-A","qty":1},{"sku":"UNKNOWN","qty":1}]}`,
+			name: "unknown SKU",
+			body: `{"customer":"Test customer","items":[{"sku":"TEST-A","qty":1},{"sku":"UNKNOWN","qty":1}]}`,
 			status: http.StatusBadRequest,
 			stockA: 10, stockB: 1,
 		},
 		{
-			name:   "duplicate SKU",
-			body:   `{"customer":"Test customer","items":[{"sku":"TEST-A","qty":1},{"sku":"TEST-A","qty":1}]}`,
+			name: "duplicate SKU",
+			body: `{"customer":"Test customer","items":[{"sku":"TEST-A","qty":1},{"sku":"TEST-A","qty":1}]}`,
 			status: http.StatusBadRequest,
 			stockA: 10, stockB: 1,
 		},
 		{
-			name:   "zero quantity",
-			body:   `{"customer":"Test customer","items":[{"sku":"TEST-A","qty":0}]}`,
+			name: "zero quantity",
+			body: `{"customer":"Test customer","items":[{"sku":"TEST-A","qty":0}]}`,
 			status: http.StatusBadRequest,
 			stockA: 10, stockB: 1,
 		},
 		{
-			name:   "empty items",
-			body:   `{"customer":"Test customer","items":[]}`,
+			name: "empty items",
+			body: `{"customer":"Test customer","items":[]}`,
 			status: http.StatusBadRequest,
 			stockA: 10, stockB: 1,
 		},
 		{
-			name:   "empty customer",
-			body:   `{"customer":" ","items":[{"sku":"TEST-A","qty":1}]}`,
+			name: "empty customer",
+			body: `{"customer":" ","items":[{"sku":"TEST-A","qty":1}]}`,
 			status: http.StatusBadRequest,
 			stockA: 10, stockB: 1,
 		},
@@ -83,7 +85,7 @@ func TestCreateOrder(t *testing.T) {
 			}
 
 			mux := http.NewServeMux()
-			mux.HandleFunc("POST /api/orders", CreateOrder(pool))
+			mux.HandleFunc("POST /api/orders", api.CreateOrder(pool))
 
 			req := httptest.NewRequest(
 				http.MethodPost,
@@ -122,7 +124,7 @@ func TestCreateOrder(t *testing.T) {
 			}
 
 			if tt.status == http.StatusCreated {
-				var order Order
+				var order api.Order
 				if err := json.Unmarshal(res.Body.Bytes(), &order); err != nil {
 					t.Fatal(err)
 				}
@@ -146,9 +148,9 @@ func TestCreateOrder(t *testing.T) {
 			if tt.status == http.StatusConflict {
 				var response struct {
 					Error struct {
-						Code      string `json:"code"`
-						SKU       string `json:"sku"`
-						Available int    `json:"available"`
+						Code string `json:"code"`
+						SKU string `json:"sku"`
+						Available int `json:"available"`
 					} `json:"error"`
 				}
 				if err := json.Unmarshal(res.Body.Bytes(), &response); err != nil {
@@ -179,7 +181,7 @@ func TestCreateOrderConcurrency(t *testing.T) {
 	}
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("POST /api/orders", CreateOrder(pool))
+	mux.HandleFunc("POST /api/orders", api.CreateOrder(pool))
 
 	const workers = 5
 	start := make(chan struct{})

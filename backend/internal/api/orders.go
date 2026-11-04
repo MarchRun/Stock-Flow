@@ -16,31 +16,31 @@ import (
 )
 
 type OrderInput struct {
-	Customer string           `json:"customer"`
-	Items    []OrderLineInput `json:"items"`
+	Customer string `json:"customer"`
+	Items []OrderLineInput `json:"items"`
 }
 
 type OrderLineInput struct {
 	SKU string `json:"sku"`
-	Qty int    `json:"qty"`
+	Qty int `json:"qty"`
 }
 
 type Order struct {
-	ID          int         `json:"id"`
-	Customer    string      `json:"customer"`
-	Status      string      `json:"status"`
-	Total       int         `json:"total"`
-	CreatedAt   time.Time   `json:"created_at"`
-	CancelledAt *time.Time  `json:"cancelled_at"`
-	Items       []OrderItem `json:"items"`
+	ID int `json:"id"`
+	Customer string `json:"customer"`
+	Status string `json:"status"`
+	Total int `json:"total"`
+	CreatedAt time.Time `json:"created_at"`
+	CancelledAt *time.Time `json:"cancelled_at"`
+	Items []OrderItem `json:"items"`
 }
 
 type OrderItem struct {
-	ID        int    `json:"id"`
-	OrderID   int    `json:"order_id"`
-	SKU       string `json:"sku"`
-	Qty       int    `json:"qty"`
-	UnitPrice int    `json:"unit_price"`
+	ID int `json:"id"`
+	OrderID int `json:"order_id"`
+	SKU string `json:"sku"`
+	Qty int `json:"qty"`
+	UnitPrice int `json:"unit_price"`
 }
 
 func CreateOrder(pool *pgxpool.Pool) http.HandlerFunc {
@@ -117,7 +117,7 @@ func CreateOrder(pool *pgxpool.Pool) http.HandlerFunc {
 		defer tx.Rollback(ctx)
 
 		type orderProduct struct {
-			ID    int
+			ID int
 			Price int
 			Stock int
 		}
@@ -149,8 +149,8 @@ func CreateOrder(pool *pgxpool.Pool) http.HandlerFunc {
 			if product.Stock < item.Qty {
 				reply(http.StatusConflict, map[string]interface{}{
 					"error": map[string]interface{}{
-						"code":      "INSUFFICIENT_STOCK",
-						"sku":       item.SKU,
+						"code": "INSUFFICIENT_STOCK",
+						"sku": item.SKU,
 						"available": product.Stock,
 					},
 				})
@@ -167,8 +167,8 @@ func CreateOrder(pool *pgxpool.Pool) http.HandlerFunc {
 
 		order := Order{
 			Customer: input.Customer,
-			Total:    int(total),
-			Items:    make([]OrderItem, 0, len(input.Items)),
+			Total: int(total),
+			Items: make([]OrderItem, 0, len(input.Items)),
 		}
 
 		err = tx.QueryRow(ctx, `
@@ -189,9 +189,9 @@ func CreateOrder(pool *pgxpool.Pool) http.HandlerFunc {
 		for _, item := range input.Items {
 			product := products[item.SKU]
 			line := OrderItem{
-				OrderID:   order.ID,
-				SKU:       item.SKU,
-				Qty:       item.Qty,
+				OrderID: order.ID,
+				SKU: item.SKU,
+				Qty: item.Qty,
 				UnitPrice: product.Price,
 			}
 

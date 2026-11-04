@@ -1,4 +1,4 @@
-package api
+package tests
 
 import (
 	"context"
@@ -13,6 +13,8 @@ import (
 	"testing"
 	"time"
 
+	"stockflow/backend/internal/api"
+
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 )
@@ -20,7 +22,7 @@ import (
 func testDB(t *testing.T) *pgxpool.Pool {
 	t.Helper()
 
-	if err := godotenv.Load("../../.env"); err != nil {
+	if err := godotenv.Load("../.env"); err != nil {
 		t.Log("No .env file loaded; using system environment variables")
 	}
 
@@ -71,24 +73,24 @@ func testDB(t *testing.T) *pgxpool.Pool {
 
 func TestAdjustStock(t *testing.T) {
 	tests := []struct {
-		name      string
-		qty       int
-		status    int
-		stock     int
+		name string
+		qty int
+		status int
+		stock int
 		movements int
 	}{
 		{
-			name:      "successful withdrawal",
-			qty:       3,
-			status:    http.StatusOK,
-			stock:     7,
+			name: "successful withdrawal",
+			qty: 3,
+			status: http.StatusOK,
+			stock: 7,
 			movements: 1,
 		},
 		{
-			name:      "insufficient stock writes nothing",
-			qty:       11,
-			status:    http.StatusConflict,
-			stock:     10,
+			name: "insufficient stock writes nothing",
+			qty: 11,
+			status: http.StatusConflict,
+			stock: 10,
 			movements: 0,
 		},
 	}
@@ -116,7 +118,7 @@ func TestAdjustStock(t *testing.T) {
 			mux := http.NewServeMux()
 			mux.HandleFunc(
 				"POST /api/products/{id}/stock",
-				AdjustStock(pool),
+				api.AdjustStock(pool),
 			)
 
 			body := fmt.Sprintf(
@@ -169,8 +171,8 @@ func TestAdjustStock(t *testing.T) {
 			if tt.status == http.StatusConflict {
 				var response struct {
 					Error struct {
-						Code      string `json:"code"`
-						Available int    `json:"available"`
+						Code string `json:"code"`
+						Available int `json:"available"`
 					} `json:"error"`
 				}
 

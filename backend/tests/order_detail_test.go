@@ -1,4 +1,4 @@
-package api
+package tests
 
 import (
 	"context"
@@ -8,6 +8,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"stockflow/backend/internal/api"
 )
 
 func TestOrderDetailAndCancellation(t *testing.T) {
@@ -24,9 +26,9 @@ func TestOrderDetailAndCancellation(t *testing.T) {
 	}
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("POST /api/orders", CreateOrder(pool))
-	mux.HandleFunc("GET /api/orders/{id}", GetOrder(pool))
-	mux.HandleFunc("POST /api/orders/{id}/cancel", CancelOrder(pool))
+	mux.HandleFunc("POST /api/orders", api.CreateOrder(pool))
+	mux.HandleFunc("GET /api/orders/{id}", api.GetOrder(pool))
+	mux.HandleFunc("POST /api/orders/{id}/cancel", api.CancelOrder(pool))
 
 	request := func(method, path, body string) *httptest.ResponseRecorder {
 		t.Helper()
@@ -48,7 +50,7 @@ func TestOrderDetailAndCancellation(t *testing.T) {
 		t.Fatalf("Detail: %d %s", detail.Code, detail.Body.String())
 	}
 
-	var order Order
+	var order api.Order
 	if err := json.Unmarshal(detail.Body.Bytes(), &order); err != nil {
 		t.Fatal(err)
 	}
@@ -82,7 +84,7 @@ func TestOrderDetailAndCancellation(t *testing.T) {
 		switch res.Code {
 		case http.StatusOK:
 			cancelled++
-			var result Order
+			var result api.Order
 			if err := json.Unmarshal(res.Body.Bytes(), &result); err != nil {
 				t.Fatal(err)
 			}

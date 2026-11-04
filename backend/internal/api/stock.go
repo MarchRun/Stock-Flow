@@ -15,7 +15,7 @@ import (
 
 type StockAdjustment struct {
 	Type string `json:"type"`
-	Qty  int    `json:"qty"`
+	Qty int `json:"qty"`
 	Note string `json:"note"`
 }
 
@@ -96,7 +96,7 @@ func AdjustStock(pool *pgxpool.Pool) http.HandlerFunc {
 			if input.Qty > stock {
 				reply(http.StatusConflict, map[string]interface{}{
 					"error": map[string]interface{}{
-						"code":      "INSUFFICIENT_STOCK",
+						"code": "INSUFFICIENT_STOCK",
 						"available": stock,
 					},
 				})
@@ -136,9 +136,9 @@ func AdjustStock(pool *pgxpool.Pool) http.HandlerFunc {
 		}
 
 		reply(http.StatusOK, map[string]interface{}{
-			"message":    "Stock updated.",
+			"message": "Stock updated.",
 			"product_id": id,
-			"new_stock":  stock,
+			"new_stock": stock,
 		})
 	}
 }
