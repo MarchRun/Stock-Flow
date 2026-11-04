@@ -1,0 +1,23 @@
+name: stockflow-database
+
+services:
+  db:
+    image: postgres:17.11
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "127.0.0.1:${DB_PORT:-5433}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./backend/migrations/schema.sql:/docker-entrypoint-initdb.d/001-schema.sql:ro
+      - ./backend/seeds/seed.sql:/docker-entrypoint-initdb.d/002-seed.sql:ro
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pgdata:
