@@ -55,6 +55,7 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health", health)
 	mux.HandleFunc("GET /api/products", api.ListProducts(pool))
+	mux.HandleFunc("POST /api/products/{id}/stock", api.AdjustStock(pool))
 
 	server := &http.Server{
 		Addr:              ":8080",
