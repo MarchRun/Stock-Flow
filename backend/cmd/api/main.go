@@ -10,6 +10,8 @@ import (
 	"os"
 	"time"
 
+	"stockflow/backend/internal/api"
+
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 )
@@ -52,6 +54,7 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health", health)
+	mux.HandleFunc("GET /api/products", api.ListProducts(pool))
 
 	server := &http.Server{
 		Addr:              ":8080",
