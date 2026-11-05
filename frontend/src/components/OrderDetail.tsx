@@ -51,7 +51,29 @@ export function OrderDetail({ order, onClose, onChanged }: OrderDetailProps) {
   }
 
   return (
-    <Modal title={`Order ${order.id}`} onClose={onClose} busy={busy}>
+    <Modal
+      title={`Order ${order.id}`}
+      size="lg"
+      onClose={onClose}
+      busy={busy}
+      footer={(
+        <>
+          {order.status === 'CREATED' && (
+            confirming ? (
+              <>
+                <button type="button" className="btn btn-outline-secondary" disabled={busy} onClick={() => setConfirming(false)}>Keep order</button>
+                <button type="button" className="btn btn-danger" disabled={busy} onClick={cancel}>
+                  {busy ? 'Cancelling…' : 'Yes, cancel order'}
+                </button>
+              </>
+            ) : (
+              <button type="button" className="btn btn-outline-danger me-auto" onClick={() => setConfirming(true)}>Cancel order</button>
+            )
+          )}
+          {!confirming && <button type="button" className="btn btn-outline-secondary" disabled={busy} onClick={onClose}>Close</button>}
+        </>
+      )}
+    >
       <dl className="order-facts">
         <dt>Customer</dt><dd>{order.customer}</dd>
         <dt>Status</dt><dd>{order.status === 'CREATED' ? 'Created' : 'Cancelled'}</dd>
@@ -62,8 +84,8 @@ export function OrderDetail({ order, onClose, onChanged }: OrderDetailProps) {
           </>
         )}
       </dl>
-      <div className="table-scroll" role="region" aria-label="Order items" tabIndex={0}>
-        <table>
+      <div className="table-responsive" role="region" aria-label="Order items" tabIndex={0}>
+        <table className="table align-middle">
           <thead>
             <tr>
               <th scope="col">SKU</th>
@@ -85,29 +107,10 @@ export function OrderDetail({ order, onClose, onChanged }: OrderDetailProps) {
         </table>
       </div>
       <p><strong>Total: {currency.format(order.total)}</strong></p>
-      {error && <p className="error" role="alert">{error}</p>}
-      {order.status === 'CREATED' && (
-        confirming ? (
-          <div className="cancel-confirmation">
-            <p>Cancel order {order.id}? This will restore stock for all items.</p>
-            <div className="form-actions">
-              <button type="button" disabled={busy} onClick={() => setConfirming(false)}>
-                Keep order
-              </button>
-              <button type="button" className="danger" disabled={busy} onClick={cancel}>
-                {busy ? 'Cancelling…' : 'Yes, cancel order'}
-              </button>
-            </div>
-          </div>
-        ) : (
-          <button type="button" className="danger" onClick={() => setConfirming(true)}>
-            Cancel order
-          </button>
-        )
+      {error && <p className="alert alert-danger" role="alert">{error}</p>}
+      {order.status === 'CREATED' && confirming && (
+        <p className="alert alert-warning" role="alert">Cancel order {order.id}? This will restore stock for all items.</p>
       )}
-      <div className="form-actions">
-        <button type="button" disabled={busy} onClick={onClose}>Close</button>
-      </div>
     </Modal>
   )
 }

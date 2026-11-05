@@ -39,20 +39,25 @@ export function StockHistory({ product, onClose }: StockHistoryProps) {
   }, [product.id, retry])
 
   return (
-    <Modal title="Stock history" onClose={onClose}>
+    <Modal
+      title="Stock history"
+      size="lg"
+      onClose={onClose}
+      footer={<button type="button" className="btn btn-outline-secondary" onClick={onClose}>Close</button>}
+    >
       <p>{product.sku} — {product.name}</p>
       {loading && <p role="status">Loading movements…</p>}
       {!loading && error && (
-        <div className="error" role="alert">
+        <div className="alert alert-danger" role="alert">
           <p>{error}</p>
-          <button type="button" onClick={() => setRetry(value => value + 1)}>Retry</button>
+          <button type="button" className="btn btn-outline-danger" onClick={() => setRetry(value => value + 1)}>Retry</button>
         </div>
       )}
       {!loading && !error && movements.length === 0 && <p>No movements recorded.</p>}
       {!loading && !error && movements.length > 0 && (
-        <div className="table-scroll" role="region" aria-label="Stock movements" tabIndex={0}>
-          <table>
-            <thead>
+        <div className="table-responsive history-table" role="region" aria-label="Stock movements" tabIndex={0}>
+          <table className="table align-middle">
+            <thead className="table-light">
               <tr>
                 <th scope="col">Type</th>
                 <th scope="col" className="number">Quantity</th>
@@ -66,16 +71,21 @@ export function StockHistory({ product, onClose }: StockHistoryProps) {
                   <td>{movement.type === 'in' ? 'In' : 'Out'}</td>
                   <td className="number">{movement.qty}</td>
                   <td>{movement.note || '—'}</td>
-                  <td>{new Date(movement.created_at).toLocaleString('en-GB')}</td>
+                  <td className="text-nowrap">
+                    {new Date(movement.created_at).toLocaleString('en-GB', {
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       )}
-      <div className="form-actions">
-        <button type="button" onClick={onClose}>Close</button>
-      </div>
     </Modal>
   )
 }

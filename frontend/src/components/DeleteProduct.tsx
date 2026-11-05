@@ -32,15 +32,21 @@ export function DeleteProduct({ product, onClose, onDeleted }: DeleteProductProp
   }
 
   return (
-    <Modal title="Delete product" onClose={onClose} busy={busy}>
+    <Modal
+      title="Delete product"
+      onClose={onClose}
+      busy={busy}
+      footer={(
+        <>
+          <button type="button" className="btn btn-outline-secondary" disabled={busy} onClick={onClose}>Cancel</button>
+          <button type="button" className="btn btn-danger" disabled={busy} onClick={confirm}>
+            {busy ? 'Deleting…' : 'Delete product'}
+          </button>
+        </>
+      )}
+    >
       <p>Delete <strong>{product.name}</strong> ({product.sku})? This cannot be undone.</p>
-      {error && <p className="error" role="alert">{error}</p>}
-      <div className="form-actions">
-        <button type="button" disabled={busy} onClick={onClose}>Cancel</button>
-        <button type="button" className="danger" disabled={busy} onClick={confirm}>
-          {busy ? 'Deleting…' : 'Delete product'}
-        </button>
-      </div>
+      {error && <p className="alert alert-danger" role="alert">{error}</p>}
     </Modal>
   )
 }

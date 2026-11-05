@@ -8,6 +8,7 @@ import { OrderForm } from './components/OrderForm'
 import { OrderDetail } from './components/OrderDetail'
 import { OrderLookup } from './components/OrderLookup'
 import { SummaryCards } from './components/SummaryCards'
+import { IconButton } from './components/IconButton'
 import type { Order, Product, ProductFilter } from './types/api'
 import './App.css'
 
@@ -53,7 +54,13 @@ function App() {
   const [creatingOrder, setCreatingOrder] = useState(false)
   const [lookingUpOrder, setLookingUpOrder] = useState(false)
   const [orderDetail, setOrderDetail] = useState<Order | null>(null)
+  const [, setClock] = useState(0)
   const limit = 10
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setClock(value => value + 1), 60000)
+    return () => window.clearInterval(timer)
+  }, [])
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -100,48 +107,49 @@ function App() {
   const pages = Math.max(1, Math.ceil(total / limit))
 
   return (
-    <main className="page">
-      <header className="page-header">
+    <main className="container-xl py-4 py-lg-5">
+      <header className="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
         <div>
-          <p className="eyebrow">Inventory and sales</p>
-          <h1>StockFlow</h1>
+          <h1 className="display-6 fw-bold mb-0">Stock Flow</h1>
         </div>
-        <span>
-          {loading || error
-            ? 'Products'
-            : `${total} ${total === 1 ? 'product' : 'products'}`}
-        </span>
+        <div className="d-flex flex-wrap gap-2">
+          <button type="button" className="btn btn-outline-primary" onClick={() => setLookingUpOrder(true)}>
+            Find order
+          </button>
+          <button type="button" className="btn btn-primary" onClick={() => setCreatingOrder(true)}>
+            Create order
+          </button>
+        </div>
       </header>
 
       <SummaryCards refresh={retry} />
 
-      <section aria-labelledby="products-title" aria-busy={loading}>
-        <h2 id="products-title">Products</h2>
-        <button type="button" onClick={() => setCreatingOrder(true)}>
-          Create order
-        </button>
-        <button type="button" onClick={() => setLookingUpOrder(true)}>
-          Look up order
-        </button>
-        <button
-          type="button"
-          className="primary"
-          onClick={() => setProductForm('new')}
-        >
-          New product
-        </button>
-        <div className="toolbar">
-          <label htmlFor="product-search">Search products</label>
+      <section className="card p-3 p-lg-4" aria-labelledby="products-title" aria-busy={loading}>
+        <div className="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+          <div>
+            <h2 id="products-title" className="h5 fw-bold mb-0">Products</h2>
+          </div>
+          <button type="button" className="btn btn-primary" onClick={() => setProductForm('new')}>
+            New product
+          </button>
+        </div>
+        <div className="row g-3 mb-4">
+          <div className="col-12 col-md-8">
+          <label className="form-label" htmlFor="product-search">Search products</label>
           <input
             id="product-search"
+            className="form-control"
             type="search"
             placeholder="Search by SKU or name"
             value={search}
             onChange={event => setSearch(event.target.value)}
           />
-          <label htmlFor="product-filter">Filter products</label>
+          </div>
+          <div className="col-12 col-md-4">
+          <label className="form-label" htmlFor="product-filter">Filter products</label>
           <select
             id="product-filter"
+            className="form-select"
             value={filter}
             onChange={event => {
               setFilter(event.target.value as ProductFilter)
@@ -151,93 +159,96 @@ function App() {
             <option value="all">All</option>
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
-            <option value="low_stock">Low stock (≤ 10)</option>
+            <option value="low_stock">Low stock</option>
           </select>
+          </div>
         </div>
 
         {loading && <p role="status">Loading products…</p>}
 
         {!loading && error && (
-          <div className="error" role="alert">
+          <div className="alert alert-danger" role="alert">
             <p>{error}</p>
-            <button onClick={() => setRetry(value => value + 1)}>
+            <button className="btn btn-outline-danger" onClick={() => setRetry(value => value + 1)}>
               Retry
             </button>
           </div>
         )}
 
         {!loading && !error && products.length === 0 && (
-          <p className="empty">No products found.</p>
+          <p className="text-center text-body-secondary py-5 mb-0">No products found.</p>
         )}
 
         {!loading && !error && products.length > 0 && (
           <>
+            <p id="table-scroll-help" className="d-lg-none small text-body-secondary mb-2">
+              Scroll horizontally to view all columns and actions.
+            </p>
             <div
-              className="table-scroll"
+              className="table-responsive inventory-table-frame"
               role="region"
               aria-label="Products"
+              aria-describedby="table-scroll-help"
               tabIndex={0}
             >
-              <table>
-                <thead>
+              <table className="table table-hover align-middle inventory-table mb-0">
+                <thead className="table-light">
                   <tr>
                     <th scope="col">SKU</th>
                     <th scope="col">Name</th>
-                    <th scope="col" className="number">Price</th>
-                    <th scope="col" className="number">Stock</th>
+                    <th scope="col">Price</th>
+                    <th scope="col">Stock</th>
                     <th scope="col">Status</th>
                     <th scope="col">Last movement</th>
-                    <th scope="col">Actions</th>
+                    <th scope="col" className="text-center">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {products.map(product => (
                     <tr key={product.id}>
-                      <td className="sku">{product.sku}</td>
-                      <td>{product.name}</td>
-                      <td className="number">{currency.format(product.price)}</td>
-                      <td className="number">{product.stock}</td>
-                      <td>
-                        <span className={`badge ${product.is_active ? 'active' : 'inactive'}`}>
+                      <th scope="row" className="sku">{product.sku}</th>
+                      <td id={`product-name-${product.id}`}>{product.name}</td>
+                      <td className="number text-start">{currency.format(product.price)}</td>
+                      <td className={`text-center ${product.stock <= 10 ? 'text-danger fw-semibold' : ''}`}>{product.stock}</td>
+                      <td className="text-center">
+                        <span className={`badge ${product.is_active ? 'text-bg-success' : 'text-bg-secondary'}`}>
                           {product.is_active ? 'Active' : 'Inactive'}
                         </span>
                       </td>
-                      <td title={product.last_movement_at
+                      <td className="text-center" title={product.last_movement_at
                         ? new Date(product.last_movement_at).toLocaleString('en-GB')
                         : undefined}
                       >
                         {relativeTime(product.last_movement_at)}
                       </td>
-                      <td>
-                        <div className="row-actions">
-                          <button
-                            type="button"
-                            aria-label={`Adjust stock for ${product.name}`}
+                      <td className="text-center">
+                        <div className="d-flex flex-nowrap justify-content-center gap-1">
+                          <IconButton
+                            icon="stock"
+                            label="Stock"
+                            contextId={`product-name-${product.id}`}
                             onClick={() => setStockProduct(product)}
-                          >
-                            Stock
-                          </button>
-                          <button
-                            type="button"
-                            aria-label={`View stock history for ${product.name}`}
+                          />
+                          <IconButton
+                            icon="history"
+                            label="History"
+                            contextId={`product-name-${product.id}`}
                             onClick={() => setHistoryProduct(product)}
-                          >
-                            History
-                          </button>
-                          <button
-                            type="button"
-                            aria-label={`Edit ${product.name}`}
+                          />
+                          <IconButton
+                            icon="edit"
+                            label="Edit"
+                            contextId={`product-name-${product.id}`}
+                            variant="primary"
                             onClick={() => setProductForm(product)}
-                          >
-                            Edit
-                          </button>
-                          <button
-                            type="button"
-                            aria-label={`Delete ${product.name}`}
+                          />
+                          <IconButton
+                            icon="delete"
+                            label="Delete"
+                            contextId={`product-name-${product.id}`}
+                            variant="danger"
                             onClick={() => setDeleteProduct(product)}
-                          >
-                            Delete
-                          </button>
+                          />
                         </div>
                       </td>
                     </tr>
@@ -246,16 +257,18 @@ function App() {
               </table>
             </div>
 
-            <nav className="pagination" aria-label="Product pages">
+            <nav className="d-flex flex-wrap justify-content-between align-items-center gap-3 mt-3" aria-label="Product pages">
               <span>Page {page} of {pages}</span>
-              <div className="page-buttons">
+              <div className="d-flex gap-2">
                 <button
+                  className="btn btn-outline-secondary btn-sm"
                   disabled={page <= 1}
                   onClick={() => setPage(value => value - 1)}
                 >
                   Previous
                 </button>
                 <button
+                  className="btn btn-outline-secondary btn-sm"
                   disabled={page >= pages}
                   onClick={() => setPage(value => value + 1)}
                 >

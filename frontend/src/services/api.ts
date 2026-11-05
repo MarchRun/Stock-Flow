@@ -56,6 +56,29 @@ async function readResponse<T>(response: Response): Promise<T> {
   return response.json() as Promise<T>
 }
 
+async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
+  const controller = new AbortController()
+  const timer = window.setTimeout(() => controller.abort(), 15000)
+  const mutation = options.method !== undefined && options.method !== 'GET'
+
+  try {
+    const response = await fetch(url, { ...options, signal: controller.signal })
+    return await readResponse<T>(response)
+  } catch (error) {
+    if (controller.signal.aborted || error instanceof TypeError) {
+      const reason = controller.signal.aborted
+        ? 'The request timed out.'
+        : 'Could not connect to the server.'
+      throw new Error(mutation
+        ? `${reason} The change may have been saved. Check the current records before trying again.`
+        : `${reason} Please try again.`, { cause: error })
+    }
+    throw error
+  } finally {
+    window.clearTimeout(timer)
+  }
+}
+
 export async function fetchProducts(
   page = 1,
   limit = 10,
@@ -69,53 +92,47 @@ export async function fetchProducts(
     filter,
   })
 
-  const response = await fetch(`/api/products?${params}`)
-  return readResponse<ProductList>(response)
+  return request<ProductList>(`/api/products?${params}`)
 }
 
 export async function createProduct(input: ProductInput): Promise<Product> {
-  const response = await fetch('/api/products', {
+  return request<Product>('/api/products', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(input),
   })
 
-  return readResponse<Product>(response)
 }
 
 export async function updateProduct(
   id: number,
   input: ProductInput,
 ): Promise<void> {
-  const response = await fetch(`/api/products/${id}`, {
+  return request<void>(`/api/products/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(input),
   })
 
-  return readResponse<void>(response)
 }
 
 export async function adjustStock(id: number, input: StockInput): Promise<StockResult> {
-  const response = await fetch(`/api/products/${id}/stock`, {
+  return request<StockResult>(`/api/products/${id}/stock`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(input),
   })
 
-  return readResponse<StockResult>(response)
 }
 
 export async function fetchMovements(id: number): Promise<MovementList> {
-  const response = await fetch(`/api/products/${id}/movements`)
-  return readResponse<MovementList>(response)
+  return request<MovementList>(`/api/products/${id}/movements`)
 }
 
 export async function deleteProduct(id: number): Promise<void> {
-  const response = await fetch(`/api/products/${id}`, {
+  return request<void>(`/api/products/${id}`, {
     method: 'DELETE',
   })
-  return readResponse<void>(response)
 }
 
 export async function fetchActiveProducts(): Promise<Product[]> {
@@ -131,27 +148,23 @@ export async function fetchActiveProducts(): Promise<Product[]> {
 }
 
 export async function createOrder(input: OrderInput): Promise<Order> {
-  const response = await fetch('/api/orders', {
+  return request<Order>('/api/orders', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(input),
   })
-  return readResponse<Order>(response)
 }
 
 export async function fetchOrder(id: number): Promise<Order> {
-  const response = await fetch(`/api/orders/${id}`)
-  return readResponse<Order>(response)
+  return request<Order>(`/api/orders/${id}`)
 }
 
 export async function cancelOrder(id: number): Promise<Order> {
-  const response = await fetch(`/api/orders/${id}/cancel`, {
+  return request<Order>(`/api/orders/${id}/cancel`, {
     method: 'POST',
   })
-  return readResponse<Order>(response)
 }
 
 export async function fetchSummary(): Promise<InventorySummary> {
-  const response = await fetch('/api/summary')
-  return readResponse<InventorySummary>(response)
+  return request<InventorySummary>('/api/summary')
 }

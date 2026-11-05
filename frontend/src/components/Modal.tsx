@@ -1,6 +1,7 @@
-import { useEffect, useRef } from 'react'
 import { useId } from 'react'
 import type { ReactNode } from 'react'
+import BootstrapModal from 'react-bootstrap/Modal'
+import CloseButton from 'react-bootstrap/CloseButton'
 import './Modal.css'
 
 interface ModalProps {
@@ -8,6 +9,8 @@ interface ModalProps {
   children: ReactNode
   onClose: () => void
   busy?: boolean
+  size?: 'sm' | 'lg' | 'xl'
+  footer?: ReactNode
 }
 
 export function Modal({
@@ -15,44 +18,35 @@ export function Modal({
   children,
   onClose,
   busy = false,
+  size,
+  footer,
 }: ModalProps) {
-  const ref = useRef<HTMLDialogElement>(null)
   const titleId = useId()
 
-  useEffect(() => {
-    const dialog = ref.current
-    if (!dialog) return
-
-    dialog.showModal()
-
-    return () => {
-      dialog.close()
-    }
-  }, [])
-
   return (
-    <dialog
-      ref={ref}
-      className="modal"
-      aria-labelledby={titleId}
-      aria-busy={busy}
-      onCancel={event => {
-        event.preventDefault()
+    <BootstrapModal
+      show
+      centered
+      scrollable
+      size={size}
+      backdrop="static"
+      keyboard={!busy}
+      onHide={() => {
         if (!busy) onClose()
       }}
+      aria-labelledby={titleId}
+      aria-busy={busy}
     >
-      <header className="modal-header">
-        <h2 id={titleId}>{title}</h2>
-        <button
-          type="button"
+      <BootstrapModal.Header>
+        <BootstrapModal.Title as="h2" id={titleId} className="fs-5">{title}</BootstrapModal.Title>
+        <CloseButton
           aria-label="Close dialog"
           disabled={busy}
           onClick={onClose}
-        >
-          ×
-        </button>
-      </header>
-      {children}
-    </dialog>
+        />
+      </BootstrapModal.Header>
+      <BootstrapModal.Body>{children}</BootstrapModal.Body>
+      {footer && <BootstrapModal.Footer>{footer}</BootstrapModal.Footer>}
+    </BootstrapModal>
   )
 }

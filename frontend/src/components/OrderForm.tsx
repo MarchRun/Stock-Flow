@@ -29,6 +29,16 @@ export function OrderForm({ onClose, onCreated }: OrderFormProps) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [failedSKU, setFailedSKU] = useState<string | null>(null)
+  const [invalidID, setInvalidID] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (invalidID && !busy) document.getElementById(invalidID)?.focus()
+  }, [invalidID, busy])
+
+  function reject(message: string, fieldID: string) {
+    setError(message)
+    setInvalidID(fieldID)
+  }
 
   useEffect(() => {
     let active = true
@@ -59,9 +69,10 @@ export function OrderForm({ onClose, onCreated }: OrderFormProps) {
     if (pending.current) return
     setError(null)
     setFailedSKU(null)
+    setInvalidID(null)
 
     if (!customer.trim()) {
-      setError('Customer name is required.')
+      reject('Customer name is required.', `${id}-customer`)
       return
     }
 
@@ -70,12 +81,12 @@ export function OrderForm({ onClose, onCreated }: OrderFormProps) {
     for (const item of items) {
       const sku = item.sku.trim()
       if (!sku) {
-        setError('Select a product for every item.')
+        reject('Select a product for every item.', `${id}-sku-${item.id}`)
         return
       }
       if (seen.has(sku)) {
         setFailedSKU(sku)
-        setError('Each product can only appear once in an order.')
+        reject('Each product can only appear once in an order.', `${id}-sku-${item.id}`)
         return
       }
       seen.add(sku)
@@ -83,7 +94,7 @@ export function OrderForm({ onClose, onCreated }: OrderFormProps) {
       if (!/^\d+$/.test(item.quantity.trim()) || !Number.isSafeInteger(qty) ||
         qty < 1 || qty > 2147483647) {
         setFailedSKU(sku)
-        setError(`Enter a whole number between 1 and 2147483647 for ${sku}.`)
+        reject(`Enter a whole number between 1 and 2147483647 for ${sku}.`, `${id}-qty-${item.id}`)
         return
       }
       parsed.push({ sku, qty })
@@ -100,6 +111,8 @@ export function OrderForm({ onClose, onCreated }: OrderFormProps) {
         const sku = error.detail.sku
         setFailedSKU(sku ?? null)
         setError(`Not enough stock for ${sku ?? 'this item'}. Available quantity: ${error.detail.available ?? 0}.`)
+        const failedItem = items.find(item => item.sku === sku)
+        if (failedItem) setInvalidID(`${id}-qty-${failedItem.id}`)
       } else {
         setError(error instanceof Error ? error.message : 'Could not create the order.')
       }
@@ -110,22 +123,41 @@ export function OrderForm({ onClose, onCreated }: OrderFormProps) {
   }
 
   return (
-    <Modal title="Create order" onClose={onClose} busy={busy}>
+    <Modal
+      title="Create order"
+      size="lg"
+      onClose={onClose}
+      busy={busy}
+      footer={(
+        <>
+          <button type="button" className="btn btn-outline-secondary" disabled={busy} onClick={onClose}>Cancel</button>
+          {!loading && !loadError && products.length > 0 && (
+            <button type="submit" form={`${id}-form`} className="btn btn-primary" disabled={busy}>
+              {busy ? 'Creating order…' : 'Create order'}
+            </button>
+          )}
+        </>
+      )}
+    >
       {loading && <p role="status">Loading products…</p>}
       {!loading && loadError && (
-        <div className="error" role="alert">
+        <div className="alert alert-danger" role="alert">
           <p>{loadError}</p>
-          <button type="button" onClick={() => setRetry(value => value + 1)}>Retry</button>
+          <button type="button" className="btn btn-outline-danger" onClick={() => setRetry(value => value + 1)}>Retry</button>
         </div>
       )}
       {!loading && !loadError && products.length === 0 && <p>No active products available.</p>}
       {!loading && !loadError && products.length > 0 && (
-        <form onSubmit={submit}>
-          {error && <p className="error" role="alert">{error}</p>}
-          <div className="form-field">
-            <label htmlFor={`${id}-customer`}>Customer name</label>
+        <form id={`${id}-form`} onSubmit={submit}>
+          {error && <p id={`${id}-error`} className="alert alert-danger" role="alert">{error}</p>}
+          <div className="mb-3">
+            <label className="form-label" htmlFor={`${id}-customer`}>Customer name (required)</label>
             <input
               id={`${id}-customer`}
+              aria-required="true"
+              aria-invalid={invalidID === `${id}-customer`}
+              aria-describedby={invalidID === `${id}-customer` ? `${id}-error` : undefined}
+              className="form-control"
               value={customer}
               disabled={busy}
               onChange={event => setCustomer(event.target.value)}
@@ -135,46 +167,58 @@ export function OrderForm({ onClose, onCreated }: OrderFormProps) {
             <fieldset
               key={item.id}
               disabled={busy}
-              className={`order-item ${failedSKU === item.sku ? 'invalid' : ''}`}
+              className={`border rounded p-3 mb-3 ${failedSKU === item.sku ? 'border-danger' : ''}`}
             >
-              <legend>Item {index + 1}{failedSKU === item.sku ? ' — check stock or quantity' : ''}</legend>
-              <div className="form-field">
-                <label htmlFor={`${id}-sku-${item.id}`}>Product</label>
-                <select
-                  id={`${id}-sku-${item.id}`}
-                  value={item.sku}
-                  aria-invalid={failedSKU === item.sku}
-                  onChange={event => changeItem(item.id, 'sku', event.target.value)}
+              <legend className="float-none w-auto px-1 fs-6">Item {index + 1}{failedSKU === item.sku ? ' — check stock or quantity' : ''}</legend>
+              <div className="row g-3">
+                <div className="col-12 col-sm-9">
+                  <label className="form-label" htmlFor={`${id}-sku-${item.id}`}>Product (required)</label>
+                  <select
+                    id={`${id}-sku-${item.id}`}
+                    aria-required="true"
+                    className={`form-select ${failedSKU === item.sku ? 'is-invalid' : ''}`}
+                    value={item.sku}
+                    aria-invalid={failedSKU === item.sku || invalidID === `${id}-sku-${item.id}`}
+                    aria-describedby={failedSKU === item.sku || invalidID === `${id}-sku-${item.id}` ? `${id}-error` : undefined}
+                    onChange={event => changeItem(item.id, 'sku', event.target.value)}
+                  >
+                    <option value="">Select a product</option>
+                    {products.map(product => (
+                      <option key={product.id} value={product.sku}>
+                        {product.sku} — {product.name} ({product.stock} in stock)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="col-12 col-sm-3">
+                  <label className="form-label" htmlFor={`${id}-qty-${item.id}`}>Quantity (required)</label>
+                  <input
+                    id={`${id}-qty-${item.id}`}
+                    aria-required="true"
+                    aria-invalid={invalidID === `${id}-qty-${item.id}`}
+                    aria-describedby={invalidID === `${id}-qty-${item.id}` ? `${id}-error` : undefined}
+                    className="form-control"
+                    inputMode="numeric"
+                    value={item.quantity}
+                    onChange={event => changeItem(item.id, 'quantity', event.target.value)}
+                  />
+                </div>
+              </div>
+              {items.length > 1 && (
+                <button
+                  type="button"
+                  className="btn btn-outline-danger btn-sm mt-3"
+                  onClick={() => setItems(current => current.filter(row => row.id !== item.id))}
                 >
-                  <option value="">Select a product</option>
-                  {products.map(product => (
-                    <option key={product.id} value={product.sku}>
-                      {product.sku} — {product.name} ({product.stock} in stock)
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="form-field">
-                <label htmlFor={`${id}-qty-${item.id}`}>Quantity</label>
-                <input
-                  id={`${id}-qty-${item.id}`}
-                  inputMode="numeric"
-                  value={item.quantity}
-                  onChange={event => changeItem(item.id, 'quantity', event.target.value)}
-                />
-              </div>
-              <button
-                type="button"
-                disabled={items.length === 1}
-                onClick={() => setItems(current => current.filter(row => row.id !== item.id))}
-              >
-                Remove item {index + 1}
-              </button>
+                  Remove item {index + 1}
+                </button>
+              )}
             </fieldset>
           ))}
           <button
             type="button"
             disabled={busy}
+            className="btn btn-outline-primary"
             onClick={() => {
               const itemID = nextID.current++
               setItems(current => [...current, { id: itemID, sku: '', quantity: '1' }])
@@ -182,12 +226,6 @@ export function OrderForm({ onClose, onCreated }: OrderFormProps) {
           >
             Add item
           </button>
-          <div className="form-actions">
-            <button type="button" disabled={busy} onClick={onClose}>Cancel</button>
-            <button type="submit" className="primary" disabled={busy}>
-              {busy ? 'Creating order…' : 'Create order'}
-            </button>
-          </div>
         </form>
       )}
     </Modal>

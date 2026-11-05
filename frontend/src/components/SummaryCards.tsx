@@ -42,18 +42,18 @@ export function SummaryCards({ refresh }: SummaryCardsProps) {
     <section aria-label="Inventory summary" aria-busy={loading}>
       {loading && <p role="status">Loading inventory summary…</p>}
       {!loading && error && (
-        <div className="error" role="alert">
+        <div className="alert alert-danger" role="alert">
           <p>{error}</p>
-          <button type="button" onClick={() => setRetry(value => value + 1)}>Retry summary</button>
+          <button type="button" className="btn btn-outline-danger" onClick={() => setRetry(value => value + 1)}>Retry summary</button>
         </div>
       )}
       {!loading && !error && summary && (
-        <dl className="summary-cards">
-          <div><dt>Total products</dt><dd>{summary.total_products}</dd></div>
-          <div><dt>Active products</dt><dd>{summary.active_products}</dd></div>
-          <div><dt>Total stock value</dt><dd>{currency.format(summary.stock_value)}</dd></div>
-          <div><dt>Low-stock products</dt><dd>{summary.low_stock_count}</dd></div>
-        </dl>
+        <div className="row g-3 mb-4 summary-cards">
+          <div className="col-12 col-sm-6 col-xl-3"><dl className="card card-body h-100 mb-0"><dt>Products</dt><dd>{summary.total_products}</dd></dl></div>
+          <div className="col-12 col-sm-6 col-xl-3"><dl className="card card-body h-100 mb-0"><dt>Active</dt><dd>{summary.active_products}</dd></dl></div>
+          <div className="col-12 col-sm-6 col-xl-3"><dl className="card card-body h-100 mb-0"><dt>Stock value</dt><dd>{currency.format(summary.stock_value)}</dd></dl></div>
+          <div className="col-12 col-sm-6 col-xl-3"><dl className="card card-body h-100 mb-0"><dt>Low stock</dt><dd>{summary.low_stock_count}</dd></dl></div>
+        </div>
       )}
     </section>
   )

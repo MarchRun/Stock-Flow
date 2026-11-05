@@ -1,39 +1,201 @@
 :root {
-  font-family: system-ui, sans-serif;
-  color: #202a35;
-  background: #f5f6f8;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
-}
-
-* {
-  box-sizing: border-box;
+  --bs-body-color: var(--text);
+  --bs-body-color-rgb: 23, 54, 93;
+  --bs-emphasis-color: var(--text-heading);
+  --bs-emphasis-color-rgb: 8, 66, 152;
+  --bs-secondary-color: var(--text-muted);
+  --bs-secondary-color-rgb: 72, 101, 129;
+  --bs-tertiary-bg: var(--surface-muted);
+  --bs-tertiary-bg-rgb: 238, 243, 250;
+  --bs-border-color: var(--border);
 }
 
 body {
-  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-family);
 }
 
-button {
-  font: inherit;
-  padding: 0.6rem 1rem;
-  border: 1px solid #b9c2cc;
-  border-radius: 0.35rem;
-  background: white;
-  color: inherit;
-  cursor: pointer;
+h1,
+h2,
+h3,
+.modal-title,
+.card-title,
+.card-header,
+.form-label,
+.form-check-label {
+  color: var(--text-heading);
 }
 
-button:hover:not(:disabled) {
-  background: #eef2f6;
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
 }
 
-button:disabled {
-  opacity: 0.5;
+:focus-visible,
+.btn:focus-visible,
+.btn-close:focus-visible,
+.form-control:focus-visible,
+.form-select:focus-visible,
+.form-check-input:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.btn {
+  --bs-btn-font-weight: 700;
+  --bs-btn-border-radius: 0.75rem;
+  --bs-btn-padding-x: 1rem;
+  --bs-btn-padding-y: 0.55rem;
+  min-height: 2.75rem;
+}
+
+.btn-sm {
+  --bs-btn-padding-x: 0.65rem;
+  --bs-btn-padding-y: 0.35rem;
+  --bs-btn-font-size: 0.8125rem;
+  --bs-btn-border-radius: 0.625rem;
+  min-height: 2.125rem;
+}
+
+.btn:disabled {
   cursor: not-allowed;
 }
 
-:focus-visible {
-  outline: 3px solid #2563eb;
-  outline-offset: 3px;
+.btn-outline-secondary {
+  --bs-btn-color: var(--text-muted);
+  --bs-btn-border-color: var(--border-control);
+  --bs-btn-hover-bg: var(--text-muted);
+  --bs-btn-hover-border-color: var(--text-muted);
+  --bs-btn-active-bg: var(--text);
+  --bs-btn-active-border-color: var(--text);
+  --bs-btn-disabled-color: var(--text-muted);
+  --bs-btn-disabled-border-color: var(--border-control);
+}
+
+.table {
+  --bs-table-color: var(--text);
+  --bs-table-hover-color: var(--text);
+  --bs-table-hover-bg: var(--surface-muted);
+}
+
+.table-light {
+  --bs-table-color: var(--text-heading);
+  --bs-table-bg: var(--surface-muted);
+  --bs-table-border-color: var(--border);
+}
+
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  min-width: 2rem;
+  min-height: 2rem;
+  flex-shrink: 0;
+  padding: 0.25rem;
+  border-radius: 50%;
+}
+
+.card {
+  --bs-card-border-radius: 1rem;
+  --bs-card-border-color: var(--bs-primary);
+}
+
+.card-title,
+.card-header {
+  font-weight: 700;
+}
+
+.form-label,
+.form-check-label {
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.form-label {
+  margin-bottom: 0.4rem;
+}
+
+.form-control,
+.form-select {
+  min-height: 2.75rem;
+  border-color: var(--border-control);
+  border-radius: 0.75rem;
+}
+
+.form-control::placeholder {
+  color: var(--text-muted);
+  opacity: 1;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--focus);
+  box-shadow: none;
+}
+
+.form-control[aria-invalid="true"],
+.form-select[aria-invalid="true"] {
+  border-color: var(--danger);
+}
+
+.form-control[aria-invalid="true"]:focus-visible,
+.form-select[aria-invalid="true"]:focus-visible {
+  outline-color: var(--danger);
+}
+
+.form-control:disabled,
+.form-select:disabled {
+  color: var(--text-muted);
+  background-color: var(--surface-muted);
+}
+
+.form-text {
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+}
+
+.badge {
+  border-radius: 0.375rem;
+  padding: 0.4em 0.65em;
+  font-weight: 600;
+}
+
+.badge.text-bg-success {
+  color: #084298 !important;
+  background-color: #cfe2ff !important;
+}
+
+.badge.text-bg-secondary {
+  color: var(--text-muted) !important;
+  background-color: var(--surface-muted) !important;
+}
+
+.alert {
+  border-radius: 0.5rem;
+  overflow-wrap: anywhere;
+}
+
+.alert p:last-child {
+  margin-bottom: 0;
+}
+
+@media (pointer: coarse) {
+  .btn-sm,
+  .btn-close {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+  }
+}
+
+.number {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
