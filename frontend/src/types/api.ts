@@ -56,6 +56,29 @@ export interface ErrorDetail {
   available?: number
 }
 
+export interface OrderInput {
+  customer: string
+  items: { sku: string; qty: number }[]
+}
+
+export interface OrderItem {
+  id: number
+  order_id: number
+  sku: string
+  qty: number
+  unit_price: number
+}
+
+export interface Order {
+  id: number
+  customer: string
+  status: 'CREATED' | 'CANCELLED'
+  total: number
+  created_at: string
+  cancelled_at: string | null
+  items: OrderItem[]
+}
+
 export class ApiError extends Error {
   readonly status: number
   readonly detail: string | ErrorDetail | undefined

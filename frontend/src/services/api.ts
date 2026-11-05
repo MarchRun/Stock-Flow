@@ -1,6 +1,7 @@
 import { ApiError } from '../types/api'
 import type { ErrorDetail, Product, ProductFilter, ProductList, ProductInput } from '../types/api'
 import type { MovementList, StockInput, StockResult } from '../types/api'
+import type { Order, OrderInput } from '../types/api'
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
@@ -114,4 +115,37 @@ export async function deleteProduct(id: number): Promise<void> {
     method: 'DELETE',
   })
   return readResponse<void>(response)
+}
+
+export async function fetchActiveProducts(): Promise<Product[]> {
+  const products: Product[] = []
+  let page = 1
+
+  while (true) {
+    const result = await fetchProducts(page, 100, '', 'active')
+    products.push(...result.data)
+    if (products.length >= result.total || result.data.length === 0) return products
+    page++
+  }
+}
+
+export async function createOrder(input: OrderInput): Promise<Order> {
+  const response = await fetch('/api/orders', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  })
+  return readResponse<Order>(response)
+}
+
+export async function fetchOrder(id: number): Promise<Order> {
+  const response = await fetch(`/api/orders/${id}`)
+  return readResponse<Order>(response)
+}
+
+export async function cancelOrder(id: number): Promise<Order> {
+  const response = await fetch(`/api/orders/${id}/cancel`, {
+    method: 'POST',
+  })
+  return readResponse<Order>(response)
 }

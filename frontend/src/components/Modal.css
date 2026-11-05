@@ -86,3 +86,35 @@ button.danger {
 button.danger:hover:not(:disabled) {
   background: #862222;
 }
+.order-item {
+  min-width: 0;
+  margin: 0 0 1rem;
+  padding: 1rem;
+  border: 1px solid #b9c2cc;
+  border-radius: 0.35rem;
+}
+
+.order-item.invalid {
+  border: 2px solid #a52b2b;
+}
+
+.order-facts {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.5rem 1rem;
+}
+
+.order-facts dt {
+  font-weight: 600;
+}
+
+.order-facts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.cancel-confirmation {
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid #b9c2cc;
+  border-radius: 0.35rem;
+}

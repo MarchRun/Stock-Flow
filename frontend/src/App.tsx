@@ -4,7 +4,10 @@ import { ProductForm } from './components/ProductForm'
 import { DeleteProduct } from './components/DeleteProduct'
 import { StockAdjust } from './components/StockAdjust'
 import { StockHistory } from './components/StockHistory'
-import type { Product, ProductFilter } from './types/api'
+import { OrderForm } from './components/OrderForm'
+import { OrderDetail } from './components/OrderDetail'
+import { OrderLookup } from './components/OrderLookup'
+import type { Order, Product, ProductFilter } from './types/api'
 import './App.css'
 
 const currency = new Intl.NumberFormat('id-ID', {
@@ -46,6 +49,9 @@ function App() {
   const [deleteProduct, setDeleteProduct] = useState<Product | null>(null)
   const [stockProduct, setStockProduct] = useState<Product | null>(null)
   const [historyProduct, setHistoryProduct] = useState<Product | null>(null)
+  const [creatingOrder, setCreatingOrder] = useState(false)
+  const [lookingUpOrder, setLookingUpOrder] = useState(false)
+  const [orderDetail, setOrderDetail] = useState<Order | null>(null)
   const limit = 10
 
   useEffect(() => {
@@ -108,6 +114,12 @@ function App() {
 
       <section aria-labelledby="products-title" aria-busy={loading}>
         <h2 id="products-title">Products</h2>
+        <button type="button" onClick={() => setCreatingOrder(true)}>
+          Create order
+        </button>
+        <button type="button" onClick={() => setLookingUpOrder(true)}>
+          Look up order
+        </button>
         <button
           type="button"
           className="primary"
@@ -258,6 +270,36 @@ function App() {
           onSaved={() => {
             setProductForm(null)
             setRetry(value => value + 1)
+          }}
+        />
+      )}
+      {creatingOrder && (
+        <OrderForm
+          onClose={() => setCreatingOrder(false)}
+          onCreated={order => {
+            setCreatingOrder(false)
+            setOrderDetail(order)
+            setRetry(value => value + 1)
+          }}
+        />
+      )}
+      {orderDetail && (
+        <OrderDetail
+          key={orderDetail.id}
+          order={orderDetail}
+          onClose={() => setOrderDetail(null)}
+          onChanged={order => {
+            setOrderDetail(order)
+            setRetry(value => value + 1)
+          }}
+        />
+      )}
+      {lookingUpOrder && (
+        <OrderLookup
+          onClose={() => setLookingUpOrder(false)}
+          onFound={order => {
+            setLookingUpOrder(false)
+            setOrderDetail(order)
           }}
         />
       )}
