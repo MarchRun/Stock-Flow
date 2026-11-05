@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react'
 import { fetchProducts } from './services/api'
+import { ProductForm } from './components/ProductForm'
+import { DeleteProduct } from './components/DeleteProduct'
+import { StockAdjust } from './components/StockAdjust'
+import { StockHistory } from './components/StockHistory'
 import type { Product, ProductFilter } from './types/api'
 import './App.css'
 
@@ -38,6 +42,10 @@ function App() {
   const [search, setSearch] = useState('')
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState<ProductFilter>('all')
+  const [productForm, setProductForm] = useState<Product | 'new' | null>(null)
+  const [deleteProduct, setDeleteProduct] = useState<Product | null>(null)
+  const [stockProduct, setStockProduct] = useState<Product | null>(null)
+  const [historyProduct, setHistoryProduct] = useState<Product | null>(null)
   const limit = 10
 
   useEffect(() => {
@@ -100,6 +108,13 @@ function App() {
 
       <section aria-labelledby="products-title" aria-busy={loading}>
         <h2 id="products-title">Products</h2>
+        <button
+          type="button"
+          className="primary"
+          onClick={() => setProductForm('new')}
+        >
+          New product
+        </button>
         <div className="toolbar">
           <label htmlFor="product-search">Search products</label>
           <input
@@ -157,6 +172,7 @@ function App() {
                     <th scope="col" className="number">Stock</th>
                     <th scope="col">Status</th>
                     <th scope="col">Last movement</th>
+                    <th scope="col">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -176,6 +192,38 @@ function App() {
                         : undefined}
                       >
                         {relativeTime(product.last_movement_at)}
+                      </td>
+                      <td>
+                        <div className="row-actions">
+                          <button
+                            type="button"
+                            aria-label={`Adjust stock for ${product.name}`}
+                            onClick={() => setStockProduct(product)}
+                          >
+                            Stock
+                          </button>
+                          <button
+                            type="button"
+                            aria-label={`View stock history for ${product.name}`}
+                            onClick={() => setHistoryProduct(product)}
+                          >
+                            History
+                          </button>
+                          <button
+                            type="button"
+                            aria-label={`Edit ${product.name}`}
+                            onClick={() => setProductForm(product)}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            aria-label={`Delete ${product.name}`}
+                            onClick={() => setDeleteProduct(product)}
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -203,6 +251,48 @@ function App() {
           </>
         )}
       </section>
+      {productForm !== null && (
+        <ProductForm
+          product={productForm === 'new' ? undefined : productForm}
+          onClose={() => setProductForm(null)}
+          onSaved={() => {
+            setProductForm(null)
+            setRetry(value => value + 1)
+          }}
+        />
+      )}
+      {stockProduct && (
+        <StockAdjust
+          key={stockProduct.id}
+          product={stockProduct}
+          onClose={() => setStockProduct(null)}
+          onSaved={() => {
+            setStockProduct(null)
+            setRetry(value => value + 1)
+          }}
+        />
+      )}
+      {historyProduct && (
+        <StockHistory
+          key={historyProduct.id}
+          product={historyProduct}
+          onClose={() => setHistoryProduct(null)}
+        />
+      )}
+      {deleteProduct && (
+        <DeleteProduct
+          product={deleteProduct}
+          onClose={() => setDeleteProduct(null)}
+          onDeleted={() => {
+            setDeleteProduct(null)
+            if (products.length === 1 && page > 1) {
+              setPage(value => value - 1)
+            } else {
+              setRetry(value => value + 1)
+            }
+          }}
+        />
+      )}
     </main>
   )
 }

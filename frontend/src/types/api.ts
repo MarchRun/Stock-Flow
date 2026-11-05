@@ -18,6 +18,38 @@ export interface ProductList {
   total: number
 }
 
+export interface ProductInput {
+  sku: string
+  name: string
+  price: number
+  is_active: boolean
+}
+
+export interface StockInput {
+  type: 'in' | 'out'
+  qty: number
+  note?: string
+}
+
+export interface StockResult {
+  message: string
+  product_id: number
+  new_stock: number
+}
+
+export interface StockMovement {
+  id: number
+  product_id: number
+  type: 'in' | 'out'
+  qty: number
+  note: string | null
+  created_at: string
+}
+
+export interface MovementList {
+  data: StockMovement[]
+}
+
 export interface ErrorDetail {
   code: string
   sku?: string

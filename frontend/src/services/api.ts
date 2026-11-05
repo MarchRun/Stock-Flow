@@ -1,5 +1,6 @@
 import { ApiError } from '../types/api'
-import type { ErrorDetail, ProductFilter, ProductList } from '../types/api'
+import type { ErrorDetail, Product, ProductFilter, ProductList, ProductInput } from '../types/api'
+import type { MovementList, StockInput, StockResult } from '../types/api'
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
@@ -68,4 +69,49 @@ export async function fetchProducts(
 
   const response = await fetch(`/api/products?${params}`)
   return readResponse<ProductList>(response)
+}
+
+export async function createProduct(input: ProductInput): Promise<Product> {
+  const response = await fetch('/api/products', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  })
+
+  return readResponse<Product>(response)
+}
+
+export async function updateProduct(
+  id: number,
+  input: ProductInput,
+): Promise<void> {
+  const response = await fetch(`/api/products/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  })
+
+  return readResponse<void>(response)
+}
+
+export async function adjustStock(id: number, input: StockInput): Promise<StockResult> {
+  const response = await fetch(`/api/products/${id}/stock`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  })
+
+  return readResponse<StockResult>(response)
+}
+
+export async function fetchMovements(id: number): Promise<MovementList> {
+  const response = await fetch(`/api/products/${id}/movements`)
+  return readResponse<MovementList>(response)
+}
+
+export async function deleteProduct(id: number): Promise<void> {
+  const response = await fetch(`/api/products/${id}`, {
+    method: 'DELETE',
+  })
+  return readResponse<void>(response)
 }
