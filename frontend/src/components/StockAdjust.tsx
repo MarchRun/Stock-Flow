@@ -4,6 +4,7 @@ import { adjustStock } from '../services/api'
 import { ApiError } from '../types/api'
 import type { Product, StockInput } from '../types/api'
 import { Modal } from './Modal'
+import { wholeNumber } from '../lib/validation'
 
 interface StockAdjustProps {
   product: Product
@@ -37,9 +38,8 @@ export function StockAdjust({ product, onClose, onSaved }: StockAdjustProps) {
     setError(null)
     setInvalid(false)
 
-    const qty = Number(quantity.trim())
-    if (!/^\d+$/.test(quantity.trim()) || !Number.isSafeInteger(qty) ||
-      qty < 1 || qty > 2147483647) {
+    const qty = wholeNumber(quantity, 1)
+    if (qty === null) {
       reject('Enter a whole number between 1 and 2147483647 for the quantity.')
       return
     }

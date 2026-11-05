@@ -10,32 +10,8 @@ import { OrderLookup } from './components/OrderLookup'
 import { SummaryCards } from './components/SummaryCards'
 import { IconButton } from './components/IconButton'
 import type { Order, Product, ProductFilter } from './types/api'
+import { formatRupiah, relativeTime } from './lib/format'
 import './App.css'
-
-const currency = new Intl.NumberFormat('id-ID', {
-  style: 'currency',
-  currency: 'IDR',
-  maximumFractionDigits: 0,
-})
-
-function relativeTime(value: string | null): string {
-  if (!value) return 'No movements'
-
-  const timestamp = new Date(value).getTime()
-  if (!Number.isFinite(timestamp)) return 'Unknown time'
-
-  const seconds = Math.floor((Date.now() - timestamp) / 1000)
-  const elapsed = Math.abs(seconds)
-  if (elapsed < 60) return seconds < 0 ? 'In a moment' : 'Just now'
-
-  const duration = elapsed < 3600
-    ? `${Math.floor(elapsed / 60)}m`
-    : elapsed < 86400
-      ? `${Math.floor(elapsed / 3600)}h`
-      : `${Math.floor(elapsed / 86400)}d`
-
-  return seconds < 0 ? `In ${duration}` : `${duration} ago`
-}
 
 function App() {
   const [products, setProducts] = useState<Product[]>([])
@@ -208,7 +184,7 @@ function App() {
                     <tr key={product.id}>
                       <th scope="row" className="sku">{product.sku}</th>
                       <td id={`product-name-${product.id}`}>{product.name}</td>
-                      <td className="number text-start">{currency.format(product.price)}</td>
+                      <td className="number text-start">{formatRupiah(product.price)}</td>
                       <td className={`text-center ${product.stock <= 10 ? 'text-danger fw-semibold' : ''}`}>{product.stock}</td>
                       <td className="text-center">
                         <span className={`badge ${product.is_active ? 'text-bg-success' : 'text-bg-secondary'}`}>

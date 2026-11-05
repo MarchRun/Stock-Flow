@@ -4,6 +4,7 @@ import { fetchOrder } from '../services/api'
 import { ApiError } from '../types/api'
 import type { Order } from '../types/api'
 import { Modal } from './Modal'
+import { wholeNumber } from '../lib/validation'
 
 interface OrderLookupProps {
   onClose: () => void
@@ -24,9 +25,8 @@ export function OrderLookup({ onClose, onFound }: OrderLookupProps) {
     setError(null)
     setInvalid(false)
 
-    const number = Number(value.trim())
-    if (!/^\d+$/.test(value.trim()) || !Number.isSafeInteger(number) ||
-      number < 1 || number > 2147483647) {
+    const number = wholeNumber(value, 1)
+    if (number === null) {
       setError('Enter a whole number between 1 and 2147483647 for the order ID.')
       setInvalid(true)
       document.getElementById(id)?.focus()

@@ -4,6 +4,7 @@ import { createOrder, fetchActiveProducts } from '../services/api'
 import { ApiError } from '../types/api'
 import type { Order, Product } from '../types/api'
 import { Modal } from './Modal'
+import { validateOrder } from '../lib/validation'
 
 interface OrderFormProps {
   onClose: () => void
@@ -71,39 +72,19 @@ export function OrderForm({ onClose, onCreated }: OrderFormProps) {
     setFailedSKU(null)
     setInvalidID(null)
 
-    if (!customer.trim()) {
-      reject('Customer name is required.', `${id}-customer`)
+    const result = validateOrder(customer, items)
+    if (!result.valid) {
+      setFailedSKU(result.sku ?? null)
+      const item = result.index === undefined ? undefined : items[result.index]
+      const fieldID = item ? `${id}-${result.field}-${item.id}` : `${id}-customer`
+      reject(result.message, fieldID)
       return
-    }
-
-    const seen = new Set<string>()
-    const parsed = []
-    for (const item of items) {
-      const sku = item.sku.trim()
-      if (!sku) {
-        reject('Select a product for every item.', `${id}-sku-${item.id}`)
-        return
-      }
-      if (seen.has(sku)) {
-        setFailedSKU(sku)
-        reject('Each product can only appear once in an order.', `${id}-sku-${item.id}`)
-        return
-      }
-      seen.add(sku)
-      const qty = Number(item.quantity.trim())
-      if (!/^\d+$/.test(item.quantity.trim()) || !Number.isSafeInteger(qty) ||
-        qty < 1 || qty > 2147483647) {
-        setFailedSKU(sku)
-        reject(`Enter a whole number between 1 and 2147483647 for ${sku}.`, `${id}-qty-${item.id}`)
-        return
-      }
-      parsed.push({ sku, qty })
     }
 
     pending.current = true
     setBusy(true)
     try {
-      const order = await createOrder({ customer: customer.trim(), items: parsed })
+      const order = await createOrder(result.input)
       onCreated(order)
     } catch (error) {
       if (error instanceof ApiError && typeof error.detail === 'object' &&

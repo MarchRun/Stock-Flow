@@ -3,18 +3,13 @@ import { cancelOrder, fetchOrder } from '../services/api'
 import { ApiError } from '../types/api'
 import type { Order } from '../types/api'
 import { Modal } from './Modal'
+import { formatRupiah } from '../lib/format'
 
 interface OrderDetailProps {
   order: Order
   onClose: () => void
   onChanged: (order: Order) => void
 }
-
-const currency = new Intl.NumberFormat('id-ID', {
-  style: 'currency',
-  currency: 'IDR',
-  maximumFractionDigits: 0,
-})
 
 export function OrderDetail({ order, onClose, onChanged }: OrderDetailProps) {
   const pending = useRef(false)
@@ -99,14 +94,14 @@ export function OrderDetail({ order, onClose, onChanged }: OrderDetailProps) {
               <tr key={item.id}>
                 <td>{item.sku}</td>
                 <td className="number">{item.qty}</td>
-                <td className="number">{currency.format(item.unit_price)}</td>
-                <td className="number">{currency.format(item.unit_price * item.qty)}</td>
+                <td className="number">{formatRupiah(item.unit_price)}</td>
+                <td className="number">{formatRupiah(item.unit_price * item.qty)}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      <p><strong>Total: {currency.format(order.total)}</strong></p>
+      <p><strong>Total: {formatRupiah(order.total)}</strong></p>
       {error && <p className="alert alert-danger" role="alert">{error}</p>}
       {order.status === 'CREATED' && confirming && (
         <p className="alert alert-warning" role="alert">Cancel order {order.id}? This will restore stock for all items.</p>

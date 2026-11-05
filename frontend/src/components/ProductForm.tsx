@@ -3,6 +3,7 @@ import type { FormEvent } from 'react'
 import type { Product } from '../types/api'
 import { createProduct, updateProduct } from '../services/api'
 import { Modal } from './Modal'
+import { wholeNumber } from '../lib/validation'
 
 interface ProductFormProps {
   product?: Product
@@ -42,13 +43,8 @@ export function ProductForm({
       return
     }
 
-    const amount = Number(price.trim())
-    if (
-      !/^\d+$/.test(price.trim()) ||
-      !Number.isSafeInteger(amount) ||
-      amount < 0 ||
-      amount > 2147483647
-    ) {
+    const amount = wholeNumber(price)
+    if (amount === null) {
       reject('Enter a whole number between 0 and 2147483647 for the price.', 'price')
       return
     }

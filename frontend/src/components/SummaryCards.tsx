@@ -1,16 +1,11 @@
 import { useEffect, useState } from 'react'
 import { fetchSummary } from '../services/api'
 import type { InventorySummary } from '../types/api'
+import { formatRupiah } from '../lib/format'
 
 interface SummaryCardsProps {
   refresh: number
 }
-
-const currency = new Intl.NumberFormat('id-ID', {
-  style: 'currency',
-  currency: 'IDR',
-  maximumFractionDigits: 0,
-})
 
 export function SummaryCards({ refresh }: SummaryCardsProps) {
   const [summary, setSummary] = useState<InventorySummary | null>(null)
@@ -51,7 +46,7 @@ export function SummaryCards({ refresh }: SummaryCardsProps) {
         <div className="row g-3 mb-4 summary-cards">
           <div className="col-12 col-sm-6 col-xl-3"><dl className="card card-body h-100 mb-0"><dt>Products</dt><dd>{summary.total_products}</dd></dl></div>
           <div className="col-12 col-sm-6 col-xl-3"><dl className="card card-body h-100 mb-0"><dt>Active</dt><dd>{summary.active_products}</dd></dl></div>
-          <div className="col-12 col-sm-6 col-xl-3"><dl className="card card-body h-100 mb-0"><dt>Stock value</dt><dd>{currency.format(summary.stock_value)}</dd></dl></div>
+          <div className="col-12 col-sm-6 col-xl-3"><dl className="card card-body h-100 mb-0"><dt>Stock value</dt><dd>{formatRupiah(summary.stock_value)}</dd></dl></div>
           <div className="col-12 col-sm-6 col-xl-3"><dl className="card card-body h-100 mb-0"><dt>Low stock</dt><dd>{summary.low_stock_count}</dd></dl></div>
         </div>
       )}
