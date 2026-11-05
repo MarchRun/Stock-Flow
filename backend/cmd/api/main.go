@@ -55,6 +55,7 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health", health)
 	mux.HandleFunc("GET /api/products", api.ListProducts(pool))
+	mux.HandleFunc("GET /api/summary", api.GetSummary(pool))
 	mux.HandleFunc("POST /api/products/{id}/stock", api.AdjustStock(pool))
 	mux.HandleFunc("POST /api/orders", api.CreateOrder(pool))
 	mux.HandleFunc("GET /api/orders/{id}", api.GetOrder(pool))

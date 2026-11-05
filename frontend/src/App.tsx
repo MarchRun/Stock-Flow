@@ -7,6 +7,7 @@ import { StockHistory } from './components/StockHistory'
 import { OrderForm } from './components/OrderForm'
 import { OrderDetail } from './components/OrderDetail'
 import { OrderLookup } from './components/OrderLookup'
+import { SummaryCards } from './components/SummaryCards'
 import type { Order, Product, ProductFilter } from './types/api'
 import './App.css'
 
@@ -111,6 +112,8 @@ function App() {
             : `${total} ${total === 1 ? 'product' : 'products'}`}
         </span>
       </header>
+
+      <SummaryCards refresh={retry} />
 
       <section aria-labelledby="products-title" aria-busy={loading}>
         <h2 id="products-title">Products</h2>
@@ -327,10 +330,9 @@ function App() {
           onClose={() => setDeleteProduct(null)}
           onDeleted={() => {
             setDeleteProduct(null)
+            setRetry(value => value + 1)
             if (products.length === 1 && page > 1) {
               setPage(value => value - 1)
-            } else {
-              setRetry(value => value + 1)
             }
           }}
         />

@@ -144,3 +144,29 @@ tbody tr:last-child td {
   flex-wrap: wrap;
   gap: 0.5rem;
 }
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  gap: 1rem;
+  margin: 0 0 2rem;
+}
+
+.summary-cards > div {
+  padding: 1rem;
+  border: 1px solid #dce1e7;
+  border-radius: 0.4rem;
+  background: white;
+}
+
+.summary-cards dt {
+  color: #526174;
+  font-size: 0.875rem;
+}
+
+.summary-cards dd {
+  margin: 0.5rem 0 0;
+  font-size: 1.4rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}

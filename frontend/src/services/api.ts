@@ -2,6 +2,7 @@ import { ApiError } from '../types/api'
 import type { ErrorDetail, Product, ProductFilter, ProductList, ProductInput } from '../types/api'
 import type { MovementList, StockInput, StockResult } from '../types/api'
 import type { Order, OrderInput } from '../types/api'
+import type { InventorySummary } from '../types/api'
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
@@ -148,4 +149,9 @@ export async function cancelOrder(id: number): Promise<Order> {
     method: 'POST',
   })
   return readResponse<Order>(response)
+}
+
+export async function fetchSummary(): Promise<InventorySummary> {
+  const response = await fetch('/api/summary')
+  return readResponse<InventorySummary>(response)
 }

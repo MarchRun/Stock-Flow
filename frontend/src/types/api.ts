@@ -1,5 +1,12 @@
 export type ProductFilter = 'all' | 'active' | 'inactive' | 'low_stock'
 
+export interface InventorySummary {
+  total_products: number
+  active_products: number
+  stock_value: number
+  low_stock_count: number
+}
+
 export interface Product {
   id: number
   sku: string
