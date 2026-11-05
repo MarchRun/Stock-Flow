@@ -57,6 +57,24 @@ func ListProducts(pool *pgxpool.Pool) http.HandlerFunc {
 
 		offset := int64(page-1) * int64(limit)
 		search := "%" + r.URL.Query().Get("search") + "%"
+		filter := r.URL.Query().Get("filter")
+		condition := ""
+
+		switch filter {
+		case "", "all":
+		case "active":
+			condition = " AND is_active = true"
+		case "inactive":
+			condition = " AND is_active = false"
+		case "low_stock":
+			condition = " AND stock <= 10"
+		default:
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(map[string]string{
+				"error": "Invalid product filter.",
+			})
+			return
+		}
 
 		ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
 		defer cancel()
@@ -73,8 +91,8 @@ func ListProducts(pool *pgxpool.Pool) http.HandlerFunc {
 		err = pool.QueryRow(ctx, `
 			SELECT COUNT(*)
 			FROM products
-			WHERE sku ILIKE $1 OR name ILIKE $1
-		`, search).Scan(&total)
+			WHERE (sku ILIKE $1 OR name ILIKE $1)
+		`+condition, search).Scan(&total)
 		if err != nil {
 			fail(err)
 			return
@@ -90,7 +108,8 @@ func ListProducts(pool *pgxpool.Pool) http.HandlerFunc {
 					WHERE m.product_id = p.id
 				) AS last_movement_at
 			FROM products p
-			WHERE p.sku ILIKE $1 OR p.name ILIKE $1
+			WHERE (p.sku ILIKE $1 OR p.name ILIKE $1)
+		`+condition+`
 			ORDER BY p.id
 			LIMIT $2 OFFSET $3
 		`, search, limit, offset)

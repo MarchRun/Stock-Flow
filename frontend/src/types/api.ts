@@ -1,3 +1,5 @@
+export type ProductFilter = 'all' | 'active' | 'inactive' | 'low_stock'
+
 export interface Product {
   id: number
   sku: string

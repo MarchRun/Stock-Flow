@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { fetchProducts } from './services/api'
-import type { Product } from './types/api'
+import type { Product, ProductFilter } from './types/api'
 import './App.css'
 
 const currency = new Intl.NumberFormat('id-ID', {
@@ -35,7 +35,19 @@ function App() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [retry, setRetry] = useState(0)
+  const [search, setSearch] = useState('')
+  const [query, setQuery] = useState('')
+  const [filter, setFilter] = useState<ProductFilter>('all')
   const limit = 10
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setQuery(search)
+      setPage(1)
+    }, 300)
+
+    return () => window.clearTimeout(timer)
+  }, [search])
 
   useEffect(() => {
     let active = true
@@ -45,7 +57,7 @@ function App() {
       setError(null)
 
       try {
-        const result = await fetchProducts(page, limit)
+        const result = await fetchProducts(page, limit, query, filter)
         if (active) {
           setProducts(result.data)
           setTotal(result.total)
@@ -68,7 +80,7 @@ function App() {
     return () => {
       active = false
     }
-  }, [page, retry])
+  }, [page, retry, query, filter])
 
   const pages = Math.max(1, Math.ceil(total / limit))
 
@@ -79,11 +91,39 @@ function App() {
           <p className="eyebrow">Inventory and sales</p>
           <h1>StockFlow</h1>
         </div>
-        <span>{loading || error ? 'Products' : `${total} products`}</span>
+        <span>
+          {loading || error
+            ? 'Products'
+            : `${total} ${total === 1 ? 'product' : 'products'}`}
+        </span>
       </header>
 
       <section aria-labelledby="products-title" aria-busy={loading}>
         <h2 id="products-title">Products</h2>
+        <div className="toolbar">
+          <label htmlFor="product-search">Search products</label>
+          <input
+            id="product-search"
+            type="search"
+            placeholder="Search by SKU or name"
+            value={search}
+            onChange={event => setSearch(event.target.value)}
+          />
+          <label htmlFor="product-filter">Filter products</label>
+          <select
+            id="product-filter"
+            value={filter}
+            onChange={event => {
+              setFilter(event.target.value as ProductFilter)
+              setPage(1)
+            }}
+          >
+            <option value="all">All</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+            <option value="low_stock">Low stock (≤ 10)</option>
+          </select>
+        </div>
 
         {loading && <p role="status">Loading products…</p>}
 

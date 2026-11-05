@@ -1,5 +1,5 @@
 import { ApiError } from '../types/api'
-import type { ErrorDetail, ProductList } from '../types/api'
+import type { ErrorDetail, ProductFilter, ProductList } from '../types/api'
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
@@ -57,11 +57,13 @@ export async function fetchProducts(
   page = 1,
   limit = 10,
   search = '',
+  filter: ProductFilter = 'all',
 ): Promise<ProductList> {
   const params = new URLSearchParams({
     page: String(page),
     limit: String(limit),
     search,
+    filter,
   })
 
   const response = await fetch(`/api/products?${params}`)

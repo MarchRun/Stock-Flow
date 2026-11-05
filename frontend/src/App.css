@@ -100,6 +100,29 @@ tbody tr:last-child td {
   gap: 0.5rem;
 }
 
+.toolbar {
+  display: grid;
+  gap: 0.5rem;
+  max-width: 28rem;
+  margin-bottom: 1rem;
+}
+
+.toolbar label {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.toolbar input,
+.toolbar select {
+  width: 100%;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid #b9c2cc;
+  border-radius: 0.35rem;
+  background: white;
+  color: inherit;
+  font: inherit;
+}
+
 .error,
 .empty {
   padding: 1.5rem;
